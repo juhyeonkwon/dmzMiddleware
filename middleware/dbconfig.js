@@ -27,6 +27,14 @@ module.exports = {
             //encrypt: true,
             database: ''
         }
-    }
+    },
+    mariaConf : {
+        host : "192.168.0.21",
+        port : '3307',
+        user : 'root',
+        password : 'root!',
+        database: "dxdata",
+        permitLocalInfile : 'true'    
+    },
 }
 

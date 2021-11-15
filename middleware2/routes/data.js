@@ -7,6 +7,7 @@ let body_data = new Array();
 
 //전역변수를 활용해서 캐시, 서버에서 데이터를 가져가게 함
 router.post('/', function(req, res) {
+    console.log(req.body)
     //post로 받은 body 데이터를 data변수에 할당합니다.
     body_data.push(req.body);    
     res.send(body_data)
