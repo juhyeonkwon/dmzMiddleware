@@ -17,7 +17,7 @@ function getRamdomLocation() {
     while(true) {
         lon_temp = Math.random();
 
-        if(lon_temp > 0.69 && lon_temp < 0.723)
+        if(lon_temp > 0.69817 && lon_temp < 0.72158)
             break;
     }
 
@@ -26,7 +26,7 @@ function getRamdomLocation() {
     while(true) {
         lat_temp = Math.random();
 
-        if(lat_temp > 0.86 && lat_temp < 0.96)
+        if(lat_temp > 0.86203 && lat_temp < 0.88139)
             break;            
     }
 
@@ -42,20 +42,20 @@ function getRamdomLocation() {
 
     let paramDate = date.getFullYear() + '-' + month + '-' + day + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
     request.post({
-        uri : 'http://127.0.0.1:3333/crane/measure',
+        uri : 'http://127.0.0.1:3333/api/crane/measure',
         headers : {"Content-Type" : "application/json"},
         port: 80,
         method : "POST",
         body : {
             crane_id : "crane_" + (Math.floor(Math.random() * 11) + 1),
             use_timestamp : paramDate,
-            gps_lon : lon,
-            gps_lat : lat,
+            gps_lon : lon.toFixed(5),
+            gps_lat : lat.toFixed(5),
             department : '디엑스데이타람쥐',
         },
         json : true,
     }, async (err, response, body) => {
-        console.log("데이터삽임 완료..");
+        console.log("데이터삽입 완료");
      });
 }
 

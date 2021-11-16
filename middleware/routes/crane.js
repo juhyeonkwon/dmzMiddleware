@@ -11,7 +11,6 @@ const mariadb = require('mariadb');
 const dbconfig = require('../dbconfig');
 const router = express.Router();
 
-
 const pool = mariadb.createPool(dbconfig.mariaConf);
 
 
@@ -19,27 +18,38 @@ const pool = mariadb.createPool(dbconfig.mariaConf);
 router.post('/measure', async function(req, res) {
 
     let param = [
-        req.body.use_timestamp,
         req.body.crane_id,
+        req.body.use_timestamp,
         req.body.gps_lon,
         req.body.gps_lat,
         req.body.department
     ]
 
-    let connection = await pool.getConnection();
+    try {
+
+        let connection = await pool.getConnection();
   
-    let sql = 'INSERT INTO crane_measure(use_timestamp, crane_id, gps_lon, gps_lat, department) VALUES (?, ?, ?, ?, ?)';
+        let sql = 'INSERT INTO crane_measure(crane_id, use_timestamp, gps_lon, gps_lat, department) VALUES (?, ?, ?, ?, ?)';
+    
+        let rows = await connection.query(sql, param);
+    
+    
+        //실시간 측정값을 crane 테이블에 반영한다.
+        let sql2 = 'UPDATE crane SET department = ?, cur_gps_lon = ?, cur_gps_lat = ?, last_timestamp = ? where crane_id = ?'
+        let rows2 = await connection.query(sql2, [req.body.department, req.body.gps_lon, req.body.gps_lat,req.body.use_timestamp,  req.body.crane_id, ]);
+    
+        req.app.get("io").emit("new", param)
+    
+        res.send(rows + rows2);
 
-    let rows = await connection.query(sql, param);
+        connection.end();
+
+    } catch(e) {
+        console.log(e);
+        res.send(e);
+    }
 
 
-    //실시간 측정값을 crane 테이블에 반영한다.
-    let sql2 = 'UPDATE crane SET department = ?, cur_gps_lon = ?, cur_gps_lat = ? where crane_id = ?'
-    let rows2 = await connection.query(sql2, [req.body.department, req.body.gps_lon, req.body.gps_lat, req.body.crane_id]);
-
-    res.send(rows + rows2);
-
-    connection.end();
 
 });
 
@@ -47,6 +57,7 @@ router.post('/measure', async function(req, res) {
 //만약 csv 파일로 보낼경우.
 let multer = require('multer');
 const { initOracleClient } = require('oracledb');
+const app = require('../server');
 let storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, './csv/');
@@ -124,13 +135,20 @@ async function insertCSV(file, conn) {
 
 router.get('/current', async function(req, res) {
 
-    let connection = await pool.getConnection();
+    let rows;
+
+    try {
+        let connection = await pool.getConnection();
   
-    let sql = 'SELECT * FROM crane';
+        let sql = 'SELECT * FROM crane';
+    
+        rows = await connection.query(sql);
+    } catch(e) {
+        console.log(e);
+    } finally {
+        res.send(rows);
+    }
 
-    let rows = await connection.query(sql);
-
-    res.send(rows);
 
 
 })

@@ -11,16 +11,29 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-
+const cors = require('cors')
 let api = require('./routes/data');
 let crane = require('./routes/crane');
+const { request } = require('express');
 
 var app = express();
 
-let server = require('http').createServer(app);
 
-const io = require('socket.io')(server);
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
+  allowEIO3: true,
+  cors:{
+    origin:"http://localhost:8080",
+    methods: ["GET","POST"],
+    credentials: true,
+    allowEIO3: true
+    },
+    transport: ['websocket']
+});
 
+//cors 설정
+app.use(cors({ origin : '*' }));
+app.set("io", io);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -32,7 +45,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/api', api);
-app.use('/crane', crane);
+app.use('/api/crane', crane);
 
 
 // catch 404 and forward to error handler
@@ -50,6 +63,20 @@ app.use(function(err, req, res, next) {
 });
 
 
+
+//소켓 관련 함수
+io.on('connection', (socket) => {
+  console.log('user connected');
+
+  socket.on('index', (data) => {
+    console.log(data);
+    io.emit('index', {a : 1, b : 2});
+  })
+
+  socket.on('disconnect', () => {
+    console.log('user discconnected');
+  })
+})
 
 
 server.listen("3333", () => {console.log("server running 3333")});
