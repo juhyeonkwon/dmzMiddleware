@@ -15,6 +15,27 @@ const pool = mariadb.createPool(dbconfig.mariaConf);
 
 
 //실시간 측정값 insert
+/**
+ * @swagger
+ *  /crane/measure:
+ *      post:
+ *          tags:
+ *              - api
+ *          description: 크레인의 실시간 정보를 POST합니다
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          $ref: '#/components/schemas/CraneMeasure'
+ *          responses:
+ *              "200":
+ *                  description: 현재 상태
+ *                  content:
+ *                      apllication/json:
+ *                          schema:
+ *                              $ref: '#/components/schemas/CraneMeasure'
+ */
 router.post('/measure', async function(req, res) {
 
     let param = [
@@ -40,7 +61,7 @@ router.post('/measure', async function(req, res) {
     
         req.app.get("io").emit("new", param)
     
-        res.send(rows + rows2);
+        res.send(rows);
 
         connection.end();
 
