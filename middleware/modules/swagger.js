@@ -3,6 +3,7 @@ const swaggereJsdoc = require('swagger-jsdoc');
 
 const options = {
     swaggerDefinition : {
+        openapi: "3.0.0",
         info : {
             title : 'Middleware API',
             version : '0.0.1',
@@ -11,7 +12,7 @@ const options = {
         host : 'api.dxdata.co.kr:3333',
         basePath : '/',
     },
-    apis: ['./routes/*.js', './swagger/*']
+    apis: ['./routes/*.js', './swagger/*', './modules/models/*.js']
 }
 
 const specs = swaggereJsdoc(options)

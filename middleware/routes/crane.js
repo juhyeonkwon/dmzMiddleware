@@ -154,6 +154,21 @@ router.post('/rent', async function(req,res) {
 
 });
 
+/**
+ * @swagger
+ *  /crane/current:
+ *      get:
+ *          tags:
+ *              - api
+ *          description: 크레인의 현재 상태 조회
+ *          responses:
+ *              "200":
+ *                  description: 현재 상태
+ *                  content:
+ *                      apllication/json:
+ *                          schema:
+ *                              $ref: '#/components/schemas/Crane'
+ */
 router.get('/current', async function(req, res) {
 
     let rows;
