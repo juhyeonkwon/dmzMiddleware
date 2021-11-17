@@ -21,6 +21,8 @@
     "request": "^2.88.2",
     "socket.io": "^4.3.2",
     "socketio": "^1.0.0",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6",
     "tedious": "^14.0.0",
     "uuid": "^8.3.2"
   }

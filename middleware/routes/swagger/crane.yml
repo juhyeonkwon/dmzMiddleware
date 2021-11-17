@@ -1,0 +1,30 @@
+# /swagger/crane.yml
+
+components:
+  schemas:
+    Crane:
+      properties:
+        data:
+          type: object
+          properties:
+            crane_id:
+              type: string
+              description: 크레인 ID
+            use_yn:
+              type: integer
+              description: 사용여부
+            rental_start:
+              type: string
+              description: 사용시작시간
+            rental_end:
+              type: string
+              description: 사용종료시간
+            cur_gps_lon:
+              type: integer
+              description: 경도
+            cur_gps_lat:
+              type: integer
+              description: 위도
+            department:
+              type: string
+              description: 사용부서                 

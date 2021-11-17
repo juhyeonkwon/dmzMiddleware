@@ -132,31 +132,45 @@ async function insertCSV(file, conn) {
     }        
 }
 
+router.post('/rent', async function(req,res) {
+
+    let params = [
+        rental_start = req.body.start,
+        rental_end = req.body.end,
+        department = req.body.department,
+        crane_id = req.body.crane_id,
+    ]
+
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+        let sql = 'UPDATE crane set rental_start = ?, rental_end = ?, department = ? WHERE crane_id = ?'
+
+        rows = await connection.query(sql, params);
+
+        res.send(rows);
+    }).catch(err => {
+        console.log(err)
+        res.send(err);
+    })
+
+});
 
 router.get('/current', async function(req, res) {
 
     let rows;
-
-    try {
-        let connection = await pool.getConnection();
-  
-        let sql = 'SELECT * FROM crane';
+    
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+        let sql = 'SELECT crane_id, use_yn, CAST(rental_start AS CHAR) as rental_start, CAST(rental_end AS CHAR) as rental_end , cur_gps_lon, cur_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp FROM crane;';
     
         rows = await connection.query(sql);
-    } catch(e) {
-        console.log(e);
-    } finally {
+
         res.send(rows);
-    }
 
-
+    }).catch(err => {
+        console.log(err)
+        res.send(err)
+    })
 
 })
-
-
-
-
-
 
 
 module.exports = router;

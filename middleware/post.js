@@ -42,7 +42,7 @@ function getRamdomLocation() {
 
     let paramDate = date.getFullYear() + '-' + month + '-' + day + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
     request.post({
-        uri : 'http://127.0.0.1:3333/api/crane/measure',
+        uri : 'http://127.0.0.1:3333/crane/measure',
         headers : {"Content-Type" : "application/json"},
         port: 80,
         method : "POST",

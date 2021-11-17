@@ -15,15 +15,17 @@ const cors = require('cors')
 let api = require('./routes/data');
 let crane = require('./routes/crane');
 const { request } = require('express');
-
+const {swaggerUi, specs } = require('./modules/swagger');
 var app = express();
 
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(specs));
 
 const server = require('http').createServer(app);
+
 const io = require('socket.io')(server, {
   allowEIO3: true,
   cors:{
-    origin:"http://localhost:8080",
+    origin:"*",   //나중에 서비스 할 때 origin을 변경해줘야 합니다 (cors문제)
     methods: ["GET","POST"],
     credentials: true,
     allowEIO3: true
@@ -45,8 +47,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/api', api);
-app.use('/api/crane', crane);
-
+app.use('/crane', crane);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
