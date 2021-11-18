@@ -12,8 +12,13 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors')
+
+
+
 let api = require('./routes/data');
 let crane = require('./routes/crane');
+let welding = require('./routes/welding');
+
 const { request } = require('express');
 const {swaggerUi, specs } = require('./modules/swagger');
 var app = express();
@@ -48,6 +53,8 @@ app.use(cookieParser());
 
 app.use('/api', api);
 app.use('/crane', crane);
+app.use('/welding', welding)
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

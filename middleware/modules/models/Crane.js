@@ -29,8 +29,8 @@
  *                     type : string
  *             example:
  *                 crane_id: crane_1
- *                 cur_gps_lat: 128.223434
- *                 cur_gps_lon: 36.664646
+ *                 cur_gps_lat: 34.868243
+ *                 cur_gps_lon: 128.700256
  *                 department: 디엑스데이다람쥐
  *                 last_timestamp: 2021-11-17 12:00:00
  *                 rental_end: 2021-11-17 12:00:00

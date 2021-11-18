@@ -20,7 +20,7 @@ const pool = mariadb.createPool(dbconfig.mariaConf);
  *  /crane/measure:
  *      post:
  *          tags:
- *              - api
+ *              - crane
  *          description: 크레인의 실시간 정보를 POST합니다
  *          requestBody:
  *              required: true
@@ -180,7 +180,7 @@ router.post('/rent', async function(req,res) {
  *  /crane/current:
  *      get:
  *          tags:
- *              - api
+ *              - crane
  *          description: 크레인의 현재 상태 조회
  *          responses:
  *              "200":
