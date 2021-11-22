@@ -18,6 +18,7 @@ const cors = require('cors')
 let api = require('./routes/data');
 let crane = require('./routes/crane');
 let welding = require('./routes/welding');
+let auth = require('./routes/user');
 
 const { request } = require('express');
 const {swaggerUi, specs } = require('./modules/swagger');
@@ -54,6 +55,7 @@ app.use(cookieParser());
 app.use('/api', api);
 app.use('/crane', crane);
 app.use('/welding', welding)
+app.use('/auth', auth);
 
 
 // catch 404 and forward to error handler

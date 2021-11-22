@@ -11,6 +11,14 @@ const options = {
         },
         host : 'api.dxdata.co.kr:3333',
         basePath : '/',
+        components: {
+            securitySchemes: {
+                JWT: {
+                    type: "http",
+                    scheme: "bearer",
+                },
+            },
+          },
     },
     apis: ['./routes/*.js', './swagger/*', './modules/models/*.js']
 }

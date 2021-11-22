@@ -189,8 +189,12 @@ router.post('/rent', async function(req,res) {
  *                      apllication/json:
  *                          schema:
  *                              $ref: '#/components/schemas/Crane'
+ *          security:
+ *              - JWT: []
  */
 router.get('/current', async function(req, res) {
+
+    console.log(req.headers.authorization.split(' ')[1]);
 
     let rows;
     
