@@ -10,7 +10,7 @@ const express = require('express');
 const mariadb = require('mariadb');
 const dbconfig = require('../dbconfig');
 const router = express.Router();
-
+const auth = require('../modules/auth')
 const pool = mariadb.createPool(dbconfig.mariaConf);
 
 
@@ -77,8 +77,7 @@ router.post('/measure', async function(req, res) {
 
 //만약 csv 파일로 보낼경우.
 let multer = require('multer');
-const { initOracleClient } = require('oracledb');
-const app = require('../server');
+
 let storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, './csv/');
@@ -192,10 +191,7 @@ router.post('/rent', async function(req,res) {
  *          security:
  *              - JWT: []
  */
-router.get('/current', async function(req, res) {
-
-    console.log(req.headers.authorization.split(' ')[1]);
-
+router.get('/current', auth.auth, async function(req, res) {
     let rows;
     
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {

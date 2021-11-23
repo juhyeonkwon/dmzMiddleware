@@ -1,17 +1,32 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/secret');
+const maria = require('mariadb');
+const dbconfig = require('../dbconfig');
+
 
 module.exports = {
     auth : function(req, res, next) {
         if(req.headers.authorization) {
             const token = req.headers.authorization.split('Bearer ')[1];
-            console.log(token)
 
-            jwt.verify(token, config.secretKey, function(err) {
+            jwt.verify(token, config.secretKey, async function(err, decoded) {
                 if(err) {
                     res.status(401).json({ error : 'Auth Error'});
-                } else {
-                    next();
+                } else {           
+                    //DB에 저장되어있는 토큰값이랑 일치한지 확인합니다람쥐!!         
+                    await maria.createConnection(dbconfig.mariaConf).then(async connection => {
+                        let row;
+                        try {
+                            row = await connection.query('SELECT token from users where user_id = ?', decoded.id);
+                        } catch(e) {
+                            res.status(401).json({ error : 'Auth Error'});
+                        }
+                        if(row[0].token === token) {
+                            next();
+                        } else {
+                            res.status(401).json({ error : 'Auth Error'});
+                        }
+                    })
                 }
             });        
         } else {
@@ -20,7 +35,7 @@ module.exports = {
     },
     generate : function(id) {
         console.log(id);
-        return jwt.sign({id : id}, config.secretKey, { expiresIn: '1h' });
+        return jwt.sign({id : id}, config.secretKey, { expiresIn: '3 days' });
     },
     verify : function(token) {
         return jwt.verify(token, config.secretKey, function(err, decoded) {
