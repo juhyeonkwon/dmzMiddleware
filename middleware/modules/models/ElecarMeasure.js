@@ -28,12 +28,12 @@
  *                 last_timestamp:
  *                     type : string
  *             example:
- *                 eqp_id: N0347 
+ *                 eqp_id: N-347 
  *                 gps_lon: 128.704069
  *                 gps_lat: 34.876778
  *                 eqp_spec_code : 38M
  *                 department: 디엑스데이타람쥐
- *                 req_no: 20200526034
- *                 use_date: 20200601
- *                 last_timestamp: 20200601_235959
+ *                 req_no: "20200526034"
+ *                 use_date: "20200601"
+ *                 use_timestamp: "20200601_235959"
  */
