@@ -3,6 +3,7 @@ const mariadb = require('mariadb');
 const dbconfig = require('../dbconfig');
 const router = express.Router();
 
+const pool = mariadb.createPool(dbconfig.mariaConf2);
 
 /**
  * @swagger
@@ -43,7 +44,7 @@ router.post('/gbs03/measure', async function(req, res) {
 
     let sql = "INSERT INTO gbs03_measure(eqp_id, date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )"
 
-    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+    pool.getConnection().then(async connection => {
         let rows = await connection.query(sql, param);
 
         res.send(rows);
@@ -99,7 +100,7 @@ router.post('/tbar/measure', function(req, res) {
 
     let sql = "INSERT INTO tbar_measure(eqp_id, date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )"
 
-    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+    pool.getConnection().then(async connection => {
         let rows = await connection.query(sql, param);
 
         res.send(rows);

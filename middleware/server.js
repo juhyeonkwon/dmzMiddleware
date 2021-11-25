@@ -25,6 +25,7 @@ const { request } = require('express');
 const {swaggerUi, specs } = require('./modules/swagger');
 var app = express();
 
+
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(specs));
 
 const server = require('http').createServer(app);
@@ -48,6 +49,7 @@ app.set("io", io);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -74,6 +76,7 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+app.use(express.static(__dirname + '/public'));
 
 
 //소켓 관련 함수

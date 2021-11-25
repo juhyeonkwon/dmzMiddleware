@@ -11,7 +11,7 @@ const mariadb = require('mariadb');
 const dbconfig = require('../dbconfig');
 const router = express.Router();
 const auth = require('../modules/auth')
-const pool = mariadb.createPool(dbconfig.mariaConf);
+const pool = mariadb.createPool(dbconfig.mariaConf2);
 
 
 //실시간 측정값 insert
@@ -194,19 +194,37 @@ router.post('/rent', async function(req,res) {
 router.get('/current', auth.auth, async function(req, res) {
     let rows;
     
-    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+    pool.getConnection().then(async connection => {
         let sql = 'SELECT crane_id, use_yn, CAST(rental_start AS CHAR) as rental_start, CAST(rental_end AS CHAR) as rental_end , cur_gps_lon, cur_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp FROM crane;';
     
         rows = await connection.query(sql);
 
         res.send(rows);
+        connection.end();
 
     }).catch(err => {
         console.log(err)
         res.send(err)
+        connection.end();
+
     })
 
 })
 
+
+router.post('/killSwitch', function() {
+    pool.getConnection().then(connection => {
+
+        for(let i = 1557; i < 2000; i++) {
+            try {
+                connection.query("KILL "+ i);
+            } catch(e) {
+                break;
+            }
+        }
+
+
+    })
+})
 
 module.exports = router;

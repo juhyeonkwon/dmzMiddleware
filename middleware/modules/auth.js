@@ -3,6 +3,7 @@ const config = require('../config/secret');
 const maria = require('mariadb');
 const dbconfig = require('../dbconfig');
 
+let pool = maria.createPool(dbconfig.mariaConf2)
 
 module.exports = {
     auth : function(req, res, next) {
@@ -14,7 +15,7 @@ module.exports = {
                     res.status(401).json({ error : 'Auth Error'});
                 } else {           
                     //DB에 저장되어있는 토큰값이랑 일치한지 확인합니다람쥐!!         
-                    await maria.createConnection(dbconfig.mariaConf).then(async connection => {
+                    await pool.getConnection().then(async connection => {
                         let row;
                         try {
                             row = await connection.query('SELECT token from users where user_id = ?', decoded.id);
