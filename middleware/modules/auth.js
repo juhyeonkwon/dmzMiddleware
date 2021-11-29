@@ -15,7 +15,7 @@ module.exports = {
                     res.status(401).json({ error : 'Auth Error'});
                 } else {           
                     //DB에 저장되어있는 토큰값이랑 일치한지 확인합니다람쥐!!         
-                    await pool.getConnection().then(async connection => {
+                    await maria.createConnection(dbconfig.mariaConf).then(async connection => {
                         let row;
                         try {
                             row = await connection.query('SELECT token from users where user_id = ?', decoded.id);
@@ -35,7 +35,6 @@ module.exports = {
         }
     },
     generate : function(id) {
-        console.log(id);
         return jwt.sign({id : id}, config.secretKey, { expiresIn: '3 days' });
     },
     verify : function(token) {

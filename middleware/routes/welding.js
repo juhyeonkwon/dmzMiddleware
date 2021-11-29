@@ -22,7 +22,7 @@ const pool = mariadb.createPool(dbconfig.mariaConf2);
  *              "200":
  *                  description: 현재 상태
  *                  content:
- *                      apllication/json:
+ *                      application/json:
  *                          schema:
  *                              $ref: '#/components/schemas/WeldingMeasure'
  */
@@ -44,7 +44,7 @@ router.post('/gbs03/measure', async function(req, res) {
 
     let sql = "INSERT INTO gbs03_measure(eqp_id, date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )"
 
-    pool.getConnection().then(async connection => {
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
         let rows = await connection.query(sql, param);
 
         res.send(rows);
@@ -79,7 +79,7 @@ router.get('/gbs03/current', function(req, res) {
  *              "200":
  *                  description: 현재 상태
  *                  content:
- *                      apllication/json:
+ *                      application/json:
  *                          schema:
  *                              $ref: '#/components/schemas/WeldingMeasure'
  */
@@ -100,7 +100,7 @@ router.post('/tbar/measure', function(req, res) {
 
     let sql = "INSERT INTO tbar_measure(eqp_id, date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )"
 
-    pool.getConnection().then(async connection => {
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
         let rows = await connection.query(sql, param);
 
         res.send(rows);

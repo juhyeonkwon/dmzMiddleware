@@ -48,7 +48,7 @@ router.post('/measure', async function(req, res) {
 
     try {
 
-        let connection = await pool.getConnection();
+        let connection = await mariadb.createConnection(dbconfig.mariaConf);
   
         let sql = 'INSERT INTO crane_measure(crane_id, use_timestamp, gps_lon, gps_lat, department) VALUES (?, ?, ?, ?, ?)';
     
@@ -194,7 +194,7 @@ router.post('/rent', async function(req,res) {
 router.get('/current', auth.auth, async function(req, res) {
     let rows;
     
-    pool.getConnection().then(async connection => {
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
         let sql = 'SELECT crane_id, use_yn, CAST(rental_start AS CHAR) as rental_start, CAST(rental_end AS CHAR) as rental_end , cur_gps_lon, cur_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp FROM crane;';
     
         rows = await connection.query(sql);
@@ -213,7 +213,7 @@ router.get('/current', auth.auth, async function(req, res) {
 
 
 router.post('/killSwitch', function() {
-    pool.getConnection().then(connection => {
+    mariadb.createConnection(dbconfig.mariaConf).then(connection => {
 
         for(let i = 1557; i < 2000; i++) {
             try {

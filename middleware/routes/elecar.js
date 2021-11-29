@@ -36,7 +36,7 @@ const client = redis.createClient({
  */
 router.get('/current', auth.auth, async function(req, res) {
 
-    pool.getConnection().then(async connection => {
+    maria.createConnection(dbconfig.mariaConf).then(async connection => {
         let rows;
         try {
             rows = await connection.query("SELECT eqp_id, current_gps_lon, current_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp FROM elecar where current_gps_lon != 0");
@@ -76,7 +76,7 @@ router.get('/current', auth.auth, async function(req, res) {
 
 router.post('/measure', async function(req, res) {
 
-    pool.getConnection().then(async connection => {
+    maria.createConnection(dbconfig.mariaConf).then(async connection => {
         let param = [
             req.body.eqp_id,
             parseFloat(req.body.gps_lon),
@@ -126,8 +126,6 @@ router.post('/measure', async function(req, res) {
 router.get('/locations', function(req, res) {
 
     let key = req.query.key;
-
-    console.log(key);
 
     client.AUTH("1234", function(err, reply) {
         client.LRANGE(key, 0, -1, function(err, reply) {

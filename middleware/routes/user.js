@@ -153,9 +153,8 @@ router.post('/overlap', async function(req, res) {
 })
 
 
-router.post('/test', jwt.auth, function(req, res) {
-    console.log('done');
-    res.send('done');
+router.post('/check', jwt.auth, function(req, res) {
+    res.send('1');
 })
 
 
