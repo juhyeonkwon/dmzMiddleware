@@ -5,13 +5,16 @@
  *          CraneMeasure:
  *             type: object
  *             required:
- *                 - use_timestamp
+ *                 - timestamp
  *                 - crane_id
  *                 - gps_lon
  *                 - gps_lat
- *                 - department:
+ *                 - department
+ *                 - data1
+ *                 - data2
+ *                 - data3
  *             properties:
- *                 use_timestamp:
+ *                 timestamp:
  *                     type : string
  *                 crane_id:
  *                     type: string
@@ -21,11 +24,19 @@
  *                     type: float
  *                 department:
  *                     type: string
+ *                 data1:
+ *                     type: string
+ *                 data2:
+ *                     type: string
+ *                 data3:
+ *                     type: string
  *             example:
- *                 use_timestamp: 2021-11-17 12:00:00
+ *                 timestamp: 2021-11-17 12:00:00
  *                 crane_id: crane_1
  *                 gps_lat: 34.868243
  *                 gps_lon: 128.700256
- *                 department: 디엑스데이다람쥐
- * 
+ *                 department: DXDATA
+ *                 data1: string
+ *                 data2: string
+ *                 data3: string
  */

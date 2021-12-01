@@ -21,11 +21,14 @@ module.exports = {
                             row = await connection.query('SELECT token from users where user_id = ?', decoded.id);
                         } catch(e) {
                             res.status(401).json({ error : 'Auth Error'});
-                        }
-                        if(row[0].token === token) {
-                            next();
-                        } else {
-                            res.status(401).json({ error : 'Auth Error'});
+                        } finally {
+                            connection.end();                                                    
+                         
+                            if(row[0].token === token) {
+                                next();
+                            } else {
+                                res.status(401).json({ error : 'Auth Error'});
+                            }
                         }
                     })
                 }

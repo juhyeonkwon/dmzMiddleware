@@ -40,24 +40,29 @@ router.post('/measure', async function(req, res) {
 
     let param = [
         req.body.crane_id,
-        req.body.use_timestamp,
+        req.body.timestamp,
         req.body.gps_lon,
         req.body.gps_lat,
-        req.body.department
+        req.body.department,
+        data1 = (req.body.data1 !== undefined) ? req.body.data1 : null,
+        data2 = (req.body.data2 !== undefined) ? req.body.data2 : null,
+        data3 = (req.body.data3 !== undefined) ? req.body.data3 : null,
+
     ]
+
 
     try {
 
         let connection = await mariadb.createConnection(dbconfig.mariaConf);
   
-        let sql = 'INSERT INTO crane_measure(crane_id, use_timestamp, gps_lon, gps_lat, department) VALUES (?, ?, ?, ?, ?)';
+        let sql = 'INSERT INTO crane_measure(crane_id, timestamp, gps_lon, gps_lat, department, data1, data2, data3) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
     
         let rows = await connection.query(sql, param);
     
     
         //실시간 측정값을 crane 테이블에 반영한다.
         let sql2 = 'UPDATE crane SET department = ?, cur_gps_lon = ?, cur_gps_lat = ?, last_timestamp = ? where crane_id = ?'
-        let rows2 = await connection.query(sql2, [req.body.department, req.body.gps_lon, req.body.gps_lat,req.body.use_timestamp,  req.body.crane_id, ]);
+        let rows2 = await connection.query(sql2, [req.body.department, req.body.gps_lon, req.body.gps_lat,req.body.timestamp,  req.body.crane_id, ]);
     
         req.app.get("io").emit("new", param)
     
