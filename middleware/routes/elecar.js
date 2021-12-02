@@ -39,7 +39,7 @@ router.get('/current', auth.auth, async function(req, res) {
     maria.createConnection(dbconfig.mariaConf).then(async connection => {
         let rows;
         try {
-            rows = await connection.query("SELECT eqp_id, current_gps_lon, current_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp FROM elecar where current_gps_lon != 0");
+            rows = await connection.query("SELECT eqp_id, current_gps_lon, current_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp, useYN FROM elecar where current_gps_lon != 0");
         } catch(e) {
             rows = e
         }
