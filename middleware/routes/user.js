@@ -78,6 +78,7 @@ router.post('/signup', async function(req, res) {
  */
 router.post('/login', async function(req, res) {
 
+    console.log('login');
     let param = [
         id = req.body.id,
     ]
@@ -108,7 +109,7 @@ router.post('/login', async function(req, res) {
         const token = jwt.generate(req.body.id);
         try {
             await connection.query("UPDATE users SET token = ? WHERE user_id = ?", [token, req.body.id]);
-            res.cookie("auth", token);
+            //res.cookie("auth", token);
             res.send(token)
             return ;
 

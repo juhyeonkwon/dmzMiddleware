@@ -133,6 +133,39 @@ router.get('/locations', function(req, res) {
         })
     });
 
+});
+
+router.post('/rent', auth.auth, function(req, res) {
+
+    maria.createConnection(dbconfig.mariaConf).then(async connection => {
+        
+        const param = [
+            id = auth.verify(req.headers.authorization.split('Bearer ')[1]).id,
+            req.body.start_time,
+            req.body.end_time,
+            req.body.eqp_id
+        ]
+
+        let SQL = "UPDATE elecar SET useYN = 1, department = (SELECT department FROM users WHERE user_id = ?), start_time = ?, end_time = ? WHERE eqp_id = ?";
+
+        try {
+            let rows = await connection.query(SQL, param);
+
+            let rows2 = await connection.query("SELECT * FROM elecar WHERE eqp_id = ?" [ req.body.eqp_id ]);
+
+            req.app.get("io").emit("update_elecar", rows2);
+
+            res.send(rows);
+
+        } catch(e) {
+            console.log(e)
+            res.send(e);
+        } finally {
+            connection.end();
+        }
+
+    
+    });
 })
 
 
