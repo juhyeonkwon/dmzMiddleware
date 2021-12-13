@@ -87,7 +87,7 @@ router.post('/login', async function(req, res) {
 
     let connection = await mariadb.createConnection(dbconfig.mariaConf);
 
-    let SQL = "SELECT user_id, user_password from users where user_id = ?";
+    let SQL = "SELECT user_id, user_password, department from users where user_id = ?";
 
     let rows;
 
@@ -109,8 +109,10 @@ router.post('/login', async function(req, res) {
         const token = jwt.generate(req.body.id);
         try {
             await connection.query("UPDATE users SET token = ? WHERE user_id = ?", [token, req.body.id]);
-            //res.cookie("auth", token);
-            res.send(token)
+            res.send({
+                token : token,
+                department : rows[0].department
+            })
             return ;
 
         } catch(e) {
@@ -136,6 +138,26 @@ async function checkPassword(password, password2) {
     }
 
 }
+
+/**
+ * @swagger
+ *  /auth/list:
+ *      get:
+ *          tags:
+ *              - user
+ *          description: 유저 리스트를 불러옵니다
+ *          responses:
+ *              "200":
+ *                  description: 유저정보
+ */
+router.get('/list', async function(req, res) {
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+
+        let rows = await connection.query('SELECT * FROM user_list');
+
+        res.send(rows);
+    })
+})
 
 //id 중복을 찾습니다람쥐!!!
 router.post('/overlap', async function(req, res) {

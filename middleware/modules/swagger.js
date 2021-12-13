@@ -7,7 +7,7 @@ const options = {
         info : {
             title : 'Middleware API',
             version : '0.0.1',
-            description : 'DXDATA의 middleware API입니다'
+            description : 'DXDATA의 middleware API입니다. DashBoard 링크 : http://dxdata.co.kr:8080/'
         },
         host : 'api.dxdata.co.kr:3333',
         basePath : '/',
@@ -20,7 +20,7 @@ const options = {
             },
           },
     },
-    apis: ['./routes/*.js', './swagger/*', './modules/models/*.js']
+    apis: ['./routes/*.js', './swagger/*', './modules/models/*.js', './modules/models/elecar/*.js']
 }
 
 const specs = swaggereJsdoc(options)

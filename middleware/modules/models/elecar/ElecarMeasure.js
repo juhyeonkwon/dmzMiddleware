@@ -8,7 +8,7 @@
  *                 - eqp_id
  *                 - current_gps_lat
  *                 - current_gps_lon
- *                 - department:
+ *                 - department
  *                 - last_timestamp
  *             properties:
  *                 eqp_id:
