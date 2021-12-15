@@ -213,7 +213,7 @@ router.post('/rent', auth.auth, function(req, res) {
     maria.createConnection(dbconfig.mariaConf).then(async connection => {
         
         const param = [
-            id = auth.verify(req.headers.authorization.split('Bearer ')[1]).id,
+            id = await auth.verifynotasync(req.headers.authorization.split('Bearer ')[1]).id,
             req.body.start_time,
             req.body.end_time,
             req.body.eqp_id

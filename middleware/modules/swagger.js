@@ -20,7 +20,7 @@ const options = {
             },
           },
     },
-    apis: ['./routes/*.js', './swagger/*', './modules/models/*.js', './modules/models/elecar/*.js']
+    apis: ['./routes/*.js', './swagger/*', './modules/models/*.js', './modules/models/elecar/*.js', './modules/models/user/*.js']
 }
 
 const specs = swaggereJsdoc(options)

@@ -2,18 +2,14 @@
  * @swagger
  *  components:
  *      schemas:
- *          User:
+ *          UserDelete:
  *             type: object
  *             required:
  *                 - id
- *                 - password
  *             properties:
  *                 id:
  *                     type: string
- *                 password:
- *                     type: string
  *             example:
- *                 id: test3
- *                 password: test
+ *                 id: test6
  * 
  */

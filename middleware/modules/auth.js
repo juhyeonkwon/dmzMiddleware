@@ -37,15 +37,41 @@ module.exports = {
             res.status(401).json({ error : 'Auth Error'});
         }
     },
-    generate : function(id) {
-        return jwt.sign({id : id}, config.secretKey, { expiresIn: '3 days' });
+    generate : function(id, admin) {
+        return jwt.sign({id : id, admin : admin}, config.secretKey, { expiresIn: '3 days' });
     },
-    verify : function(token) {
+    verifyAdmin : function(req, res, next) {
+        const token = req.headers.authorization.split('Bearer ')[1];
+
         return jwt.verify(token, config.secretKey, function(err, decoded) {
             if(err) {
                 return err;
             } else {
-                return decoded
+                if(decoded.admin !== 1) {
+                    res.status(401).json({ error : 'Auth Error, Not Admin'});
+                } else {
+                    next();
+                }
+            }
+        });
+    },
+    verify : async function(token) {
+        console.log(token)
+        return jwt.verify(token, config.secretKey, function(err, decoded) {
+            if(err) {
+                return err;
+            } else {
+                console.log(token);
+                return decoded;
+            }
+        });
+    },
+    verifynotasync : function(token) {
+        return jwt.verify(token, config.secretKey, function(err, decoded) {
+            if(err) {
+                return err;
+            } else {
+                return decoded;
             }
         });
     }
