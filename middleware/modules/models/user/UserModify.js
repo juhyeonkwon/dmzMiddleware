@@ -35,13 +35,17 @@
  *             required:
  *                 - idx
  *                 - admin
+ *                 - department
  *             properties:
  *                 idx:
  *                     type: number
+ *                 department:
+ *                     type: string
  *                 admin:
  *                     type: number
  *             example:
  *                 idx: 1
+ *                 department : 디엑스데이타
  *                 admin : 0             
  * 
  */

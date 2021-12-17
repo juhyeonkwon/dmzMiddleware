@@ -34,7 +34,7 @@ const pool = mariadb.createPool(dbconfig.mariaConf);
  */
 router.post('/signup', async function(req, res) {    
 
-    let SQL = "INSERT INTO users(user_id, user_password, department, admin) VALUES(?, ?, ?, ?) "
+    let SQL = "INSERT INTO users(user_id, user_password, department) VALUES(?, ?, ?) "
 
     const password = crypto.createHmac("sha256", secret.secretKey).update(req.body.password).digest('hex');
 
@@ -191,7 +191,7 @@ async function checkPassword(password, password2) {
  *      put:
  *          tags:
  *              - user
- *          description: 유저들의 권한을 수정합니다. 배열로 값을 받습니다
+ *          description: 유저들의 부서와 권한을 수정합니다. 배열로 값을 받습니다
  *          requestBody:
  *              required: true
  *              content:
@@ -212,13 +212,12 @@ router.put('/modify_auth', auth.auth, auth.verifyAdmin, function(req, res) {
 
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {       
 
-        let sql;
+        let sql = 'UPDATE users set department = ?, admin = ? where idx = ?'
         let param;
 
         for(let i = 0; i < req.body.length; i++) {
 
-            sql = 'UPDATE users set admin = ? where idx = ?'
-            param = [req.body[i].admin, req.body[i].idx]
+            param = [req.body[i].department, req.body[i].admin, req.body[i].idx]
 
             try {
                 await connection.query(sql, param);
