@@ -3,6 +3,15 @@ const mariadb = require('mariadb');
 const dbconfig = require('../dbconfig');
 const router = express.Router();
 const auth = require('../modules/auth');
+const redis = require('redis')
+
+
+//레디스 세팅
+const client = redis.createClient({
+    host : '192.168.0.21',
+    port : 6379,
+    password : '1234'
+});
 
 /**
  * @swagger
@@ -42,11 +51,30 @@ router.post('/gbs03/measure', async function(req, res) {
     ]
 
     let sql = "INSERT INTO gbs03_measure(eqp_id, date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )"
-
+    
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
-        let rows = await connection.query(sql, param);
+        try {
+            let rows = await connection.query(sql, param);
 
-        res.send(rows);
+            res.send(rows);
+    
+            client.AUTH('1234', function(err, reply) {
+                client.GET(param[1] + '_watt_' + 'gbs03' , function(err, reply) {
+                    let watt = parseFloat(req.body.avg_amp) * parseFloat(req.body.avg_welding_volt);                    
+                    if(reply === null) {
+                        client.SET(param[1] + '_watt_' + 'gbs03',  watt);
+                    } else {
+                        watt = watt + parseFloat(reply);
+                        client.SET(param[1] + '_watt_' + 'gbs03',  watt);
+                    }
+                })    
+            });
+        } catch (e) {
+            res.send(e);
+        } finally {
+            connection.end()
+        }
+     
     }).catch(err => {
         console.log(err)
         res.send(err);
@@ -90,7 +118,9 @@ router.get('/gbs03/current', auth.auth, function(req, res) {
 
     });
 
-})
+});
+
+
 
 /**
  * @swagger
@@ -160,13 +190,14 @@ router.get('/gbs03/average', auth.auth, function(req, res) {
 
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
 
-        let sql = "SELECT eqp_id, avg(acquisition_rate) AS acquisition_rate, avg(welding_time) AS welding_time, AVG(avg_amp) AS avg_amp, AVG(avg_volt) AS avg_volt, AVG(avg_welding_volt) AS avg_welding_volt, AVG(avg_wirespeed) AS avg_wirespeed , AVG(sum_wire) AS sum_wire, AVG(sum_inching_wire) AS sum_inching_wire, AVG(sum_total_wire) AS sum_total_wire FROM gbs03_measure GROUP BY eqp_id where eqp_id = ?"
+        let sql = "SELECT eqp_id, avg(acquisition_rate) AS acquisition_rate, avg(welding_time) AS welding_time, AVG(avg_amp) AS avg_amp, AVG(avg_volt) AS avg_volt, AVG(avg_welding_volt) AS avg_welding_volt, AVG(avg_wirespeed) AS avg_wirespeed , AVG(sum_wire) AS sum_wire, AVG(sum_inching_wire) AS sum_inching_wire, AVG(sum_total_wire) AS sum_total_wire FROM gbs03_measure where eqp_id = ? GROUP BY eqp_id"
 
         try {
-            let rows = await connection.query(sql)
+            let rows = await connection.query(sql, [eqp_id])
 
             res.send(rows)
         } catch(err) {
+            console.log(err);
             res.status(401).json({ error : 'db error'})
         } finally {
             connection.end();
@@ -211,12 +242,32 @@ router.post('/tbar/measure', function(req, res) {
         req.body.sum_total_wire,
     ]
 
+
     let sql = "INSERT INTO tbar_measure(eqp_id, date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )"
 
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+      try {
         let rows = await connection.query(sql, param);
 
         res.send(rows);
+
+        
+        client.AUTH('1234', function(err, reply) {
+            client.GET(param[1] + '_watt_' + 'tbar' , function(err, reply) {
+                let watt = parseFloat(req.body.avg_amp) * parseFloat(req.body.avg_welding_volt);                    
+                if(reply === null) {
+                    client.SET(param[1] + '_watt_' + 'tbar',  watt);
+                } else {
+                    watt = watt + parseFloat(reply);
+                    client.SET(param[1] + '_watt_' + 'tbar',  watt);
+                }
+            })    
+        });
+      } catch(e) {
+          res.send(e);
+      } finally {
+          connection.end();
+      }
     }).catch(err => {
         console.log(err)
         res.send(err);
@@ -290,17 +341,17 @@ router.get('/tbar/current', auth.auth, function(req, res) {
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
             
 
-             let sql = "SELECT idx, eqp_id, CAST(date AS CHAR) as date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire FROM tbar_measure WHERE eqp_id = ?";
+        let sql = "SELECT idx, eqp_id, CAST(date AS CHAR) as date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire FROM tbar_measure WHERE eqp_id = ?";
 
-            try {
-                let rows = await connection.query(sql, [eqp_id]);
+        try {
+            let rows = await connection.query(sql, [eqp_id]);
 
-                res.send(rows);
-            } catch(e) {
-                res.status(401).json({ error : 'db error'})
-            } finally {
-                connection.end();
-            }
+            res.send(rows);
+        } catch(e) {
+            res.status(401).json({ error : 'db error'})
+        } finally {
+            connection.end();
+        }
 
     });
 });
@@ -327,12 +378,14 @@ router.get('/tbar/current', auth.auth, function(req, res) {
  */
 router.get('/tbar/average', auth.auth, function(req, res) {
 
+    let eqp_id = req.query.eqp_id
+
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
 
-        let sql = "SELECT eqp_id, avg(acquisition_rate) AS acquisition_rate, avg(welding_time) AS welding_time, AVG(avg_amp) AS avg_amp, AVG(avg_volt) AS avg_volt, AVG(avg_welding_volt) AS avg_welding_volt, AVG(avg_wirespeed) AS avg_wirespeed , AVG(sum_wire) AS sum_wire, AVG(sum_inching_wire) AS sum_inching_wire, AVG(sum_total_wire) AS sum_total_wire FROM tbar_measure GROUP BY eqp_id"
+        let sql = "SELECT eqp_id, avg(acquisition_rate) AS acquisition_rate, avg(welding_time) AS welding_time, AVG(avg_amp) AS avg_amp, AVG(avg_volt) AS avg_volt, AVG(avg_welding_volt) AS avg_welding_volt, AVG(avg_wirespeed) AS avg_wirespeed , AVG(sum_wire) AS sum_wire, AVG(sum_inching_wire) AS sum_inching_wire, AVG(sum_total_wire) AS sum_total_wire FROM tbar_measure where eqp_id = ? GROUP BY eqp_id"
 
         try {
-            let rows = await connection.query(sql)
+            let rows = await connection.query(sql, eqp_id)
 
             res.send(rows)
         } catch(err) {
@@ -342,7 +395,98 @@ router.get('/tbar/average', auth.auth, function(req, res) {
         }
 
     })
-})
+});
+
+/**
+ * @swagger
+ *  /welding/using:
+ *      get:
+ *          tags:
+ *              - welding
+ *          description: 현재 사용중인 용접기들의 리스트를 불러옵니다.
+ *          responses:
+ *              "200":
+ *                  description: 사용중인 용접기 리스트
+ *                  content:
+ *                      apllication/json:
+ *                          schema:
+ *                              $ref: '#/components/schemas/Welding'
+ *          security:
+ *              - JWT: []
+ */
+ router.get('/using', auth.auth, function(req, res) {
+
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+        
+        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, type FROM gbs03 WHERE use_yn = 1 UNION SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, type FROM tbar WHERE use_yn = 1 ";
+
+
+        
+
+        try {
+            let rows = await connection.query(sql);
+
+            res.send(rows);
+        } catch(e) {
+            res.status(401).json({ error : 'db error'})
+        } finally {
+            connection.end();
+        }
+
+    });
+
+});
+
+
+
+
+//사용량을 확인합니다람쥐..
+/**
+ * @swagger
+ *  /welding/usage:
+ *      get:
+ *          tags:
+ *              - welding
+ *          description: 용접기의 사용량을 확인합니다! tbar 또는 gbs03을 파라미터로 받습니다.
+ *          parameters:
+ *              - in: query
+ *                name: type
+ *                schema:
+ *                  type: string
+ *          example:
+ *              type: gbs03
+ *          responses:
+ *              "200":
+ *                  description: 사용량
+ *          security:
+ *              - JWT: []
+ */
+ router.get('/usage', auth.auth, function(req, res) {
+    let type;
+    if(req.query.type === 'tbar') {
+        type = 'tbar'
+    } else {
+        type = 'gbs03'
+    }
+
+    let today = new Date();
+    let month = (today.getMonth() + 1) < 10 ? '0'+ (today.getMonth() + 1) : (today.getMonth() + 1);
+    let day = today.getDate() < 10 ? '0' + today.getDate() : today.getDate();
+    let date = today.getFullYear() + '-' +  month + '-' + day;
+
+    client.AUTH('1234', function(err, reply) {
+        client.GET('welding_' + type + '_' + date, function(err, reply) {
+
+            if(reply === null) {
+                res.send('{}');
+            } else {
+                let json = JSON.parse(reply);
+
+                res.send(json);
+            }
+        })    
+    });
+});
 
 //대여
 /**
@@ -370,15 +514,15 @@ router.put('/rent', auth.auth, async function(req, res) {
     
     //파라미터로 tbar인지 gbs03인지 여부를 받는다
 
-    let sql, sql2;
+    let sql, sql2, type;
     if(req.body.type === 'tbar') {
         sql = 'UPDATE tbar set use_yn = 1, department = (SELECT department FROM users WHERE user_id = ?), start_time = ?, end_time = ? where eqp_id = ?';
         sql2 = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department FROM tbar where eqp_id = ?";
-
+        type = 'tbar'
     } else {
         sql = 'UPDATE gbs03 set use_yn = 1, department = (SELECT department FROM users WHERE user_id = ?), start_time = ?, end_time = ? where eqp_id = ?';
         sql2 = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department FROM gbs03 where eqp_id = ?";
-
+        type = 'gbs03'
     }
 
     const param = [
@@ -403,6 +547,29 @@ router.put('/rent', auth.auth, async function(req, res) {
 
             req.app.get("io").emit("rent_welding", rows2);
 
+            client.AUTH('1234', function(err, reply) {
+                const key = req.body.start_time.split(' ')[0]
+
+                client.GET('welding_' + type + '_' + key, function(err, reply) {
+                    let eqp_id = req.body.eqp_id;
+
+                    if(reply === null) {
+                        let tempjson = { };
+                        tempjson[eqp_id + ''] = 1;
+                        client.SET('welding_' + type + '_' + key, JSON.stringify(tempjson));
+                    } else {
+                        let json = JSON.parse(reply);
+
+                        if(json[eqp_id+''] === undefined) {
+                            json[eqp_id+''] = 1;
+                        } else {
+                            json[eqp_id+''] = json[eqp_id+''] + 1
+                        }
+                        client.SET('welding_' + type + '_' + key, JSON.stringify(json));
+                    }
+                })    
+            })
+
         } catch(e) {
             res.send({ status : -1});
         } finally {
@@ -410,6 +577,7 @@ router.put('/rent', auth.auth, async function(req, res) {
         }
     })
 });
+
 
 
 
@@ -625,6 +793,8 @@ router.delete('/canclereserve', auth.auth, function(req, res) {
         }
     })
 });
+
+
 
 
 module.exports = router;

@@ -93,7 +93,7 @@ router.post('/measure', async function(req, res) {
             rows = await connection.query("INSERT INTO elecar_measure(eqp_id, gps_lon, gps_lat, eqp_spec_code, department, req_no, use_date, use_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", param);
     
             //실시간 업데이트 다람쥐..
-            row2 = await connection.query("UPDATE elecar set current_gps_lon = ?, current_gps_lat = ?, department = ?, last_timestamp= ? WHERE eqp_id = ?", [param[1], param[2], param[4], param[7], param[0]]);
+            row2 = await connection.query("UPDATE elecar set current_gps_lon = ?, current_gps_lat = ?, department = ?, last_timestamp= ?, useYN = 1 WHERE eqp_id = ?", [param[1], param[2], param[4], param[7], param[0]]);
     
             req.app.get("io").emit("new_elecar", param)
     
@@ -229,6 +229,8 @@ router.post('/rent', auth.auth, function(req, res) {
             ]
 
             let rows2 = await connection.query("SELECT eqp_id, current_gps_lon, current_gps_lat, department, CAST(last_timestamp AS CHAR) as last_timestamp, useYN, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM elecar WHERE eqp_id = ?", param2);
+
+            await connection.query("INSERT INTO elecar_history(eqp_id, department, date) VALUES (?, (SELECT department FROM users WHERE user_id = ?), ?)", [req.body.eqp_id, param[0], req.body.start_time])
 
             req.app.get("io").emit("update_elecar", rows2);
 
