@@ -38,7 +38,7 @@ module.exports = {
         }
     },
     generate : function(id, admin) {
-        return jwt.sign({id : id, admin : admin}, config.secretKey, { expiresIn: '3 days' });
+        return jwt.sign({id : id, admin : admin}, config.secretKey);
     },
     verifyAdmin : function(req, res, next) {
         const token = req.headers.authorization.split('Bearer ')[1];

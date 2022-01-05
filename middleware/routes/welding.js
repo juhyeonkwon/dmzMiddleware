@@ -104,7 +104,7 @@ router.get('/gbs03/current', auth.auth, function(req, res) {
 
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
         
-        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department FROM gbs03";
+        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM gbs03";
 
         try {
             let rows = await connection.query(sql);
@@ -298,7 +298,7 @@ router.get('/tbar/current', auth.auth, function(req, res) {
 
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
         
-        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department FROM tbar";
+        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM tbar";
 
         try {
             let rows = await connection.query(sql);
@@ -418,7 +418,7 @@ router.get('/tbar/average', auth.auth, function(req, res) {
 
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
         
-        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, type FROM gbs03 WHERE use_yn = 1 UNION SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, type FROM tbar WHERE use_yn = 1 ";
+        let sql = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, type, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM gbs03 WHERE use_yn = 1 UNION SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, type, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM tbar WHERE use_yn = 1 ";
 
 
         
@@ -428,6 +428,7 @@ router.get('/tbar/average', auth.auth, function(req, res) {
 
             res.send(rows);
         } catch(e) {
+            console.log(e)
             res.status(401).json({ error : 'db error'})
         } finally {
             connection.end();
@@ -436,7 +437,6 @@ router.get('/tbar/average', auth.auth, function(req, res) {
     });
 
 });
-
 
 
 
@@ -488,6 +488,143 @@ router.get('/tbar/average', auth.auth, function(req, res) {
     });
 });
 
+//일주일간 전력 사용량 확인
+/**
+ * @swagger
+ *  /welding/watts:
+ *      get:
+ *          tags:
+ *              - welding
+ *          description: 용접기의 전력 사용량을 확인합니다. query로 gbs03, tbar를 입력합니다.
+ *          parameters:
+ *              - in: query
+ *                name: type
+ *                schema:
+ *                  type: string
+ *          example:
+ *              type: gbs03
+ *          responses:
+ *              "200":
+ *                  description: 사용량
+ *          security:
+ *              - JWT: []
+ */
+ router.get('/watts', auth.auth, function(req, res) {
+    
+    let type = req.query.type;
+    let today = new Date();
+
+    // today.setHours(today.getHours() + 9);
+
+
+    function toStr(date) {
+
+        function zeroNumber(num) {
+            if(num < 10) {
+                return '0'+ num;
+            } else {
+                return num;
+            }
+        }       
+
+        return date.getFullYear() + '-' + zeroNumber(date.getMonth() + 1) + '-' + zeroNumber(date.getDate())
+    }
+
+    let keys = [];
+
+    keys.push(toStr(today))
+
+    for(let i = 0; i < 6; i++ ) {       
+        today.setDate(today.getDate() - 1);
+
+        keys.push(toStr(today))
+    }    
+
+    client.AUTH('1234', async function(err, reply) {
+        let rows = []
+        for(let i = 0; i < keys.length; i++ ) {
+            client.GET(keys[i] + '_watt_' + type, function(err, reply) {
+                if(reply === null || reply === NaN) {
+                    rows.push({date : keys[i], amount : 0})
+                } else {
+                    rows.push({date : keys[i], amount : parseFloat(reply)});
+                }
+
+                if(i == 6) {
+                    res.send(rows)
+                }
+            });
+        }       
+        
+    });    
+});
+
+//일주일간 전력 사용량 확인
+/**
+ * @swagger
+ *  /welding/watts/rank:
+ *      get:
+ *          tags:
+ *              - welding
+ *          description: 전날 전력 사용량이 높은 용접기들을 확인합니다(10개). query로 gbs03, tbar를 입력합니다.
+ *          parameters:
+ *              - in: query
+ *                name: type
+ *                schema:
+ *                  type: string
+ *          example:
+ *              type: gbs03
+ *          responses:
+ *              "200":
+ *                  description: 사용량
+ *          security:
+ *              - JWT: []
+ */
+ router.get('/watts/rank', auth.auth, function(req, res) {
+    
+    let type = req.query.type;
+    let today = new Date();
+    today.setDate(today.getDate() - 1);
+
+    let sql;
+
+    if(type === 'gbs03') {
+        sql = "SELECT eqp_id, CAST(date AS CHAR) as date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_amp * avg_volt AS watt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire FROM gbs03_measure g WHERE g.date = ? ORDER BY watt DESC LIMIT 10";
+    } else {
+        sql = "SELECT eqp_id, CAST(date AS CHAR) as date, acquisition_rate, welding_time, avg_amp, avg_volt, avg_amp * avg_volt AS watt, avg_welding_volt, avg_wirespeed, sum_wire, sum_inching_wire, sum_total_wire FROM tbar_measure g WHERE g.date = ? ORDER BY watt DESC LIMIT 10"
+    }
+
+    function toStr(date) {
+
+        function zeroNumber(num) {
+            if(num < 10) {
+                return '0'+ num;
+            } else {
+                return num;
+            }
+        }       
+
+        return date.getFullYear() + '-' + zeroNumber(date.getMonth() + 1) + '-' + zeroNumber(date.getDate())
+    }
+
+    let paramDate = toStr(today);
+
+    mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
+
+        try {
+            let rows = await connection.query(sql, [ paramDate ]);
+
+            res.send(rows);
+        } catch(e) {
+            console.log(e)
+            res.status(401).json({ error : 'db error'})
+        } finally {
+            connection.end();
+        }
+    })
+    
+});
+
 //대여
 /**
  * @swagger
@@ -517,11 +654,11 @@ router.put('/rent', auth.auth, async function(req, res) {
     let sql, sql2, type;
     if(req.body.type === 'tbar') {
         sql = 'UPDATE tbar set use_yn = 1, department = (SELECT department FROM users WHERE user_id = ?), start_time = ?, end_time = ? where eqp_id = ?';
-        sql2 = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department FROM tbar where eqp_id = ?";
+        sql2 = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM tbar where eqp_id = ?";
         type = 'tbar'
     } else {
         sql = 'UPDATE gbs03 set use_yn = 1, department = (SELECT department FROM users WHERE user_id = ?), start_time = ?, end_time = ? where eqp_id = ?';
-        sql2 = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department FROM gbs03 where eqp_id = ?";
+        sql2 = "SELECT eqp_id, CAST(last_timestamp AS CHAR) as last_timestamp, use_yn, department, CAST(start_time AS CHAR) as start_time, CAST(end_time AS CHAR) as end_time FROM gbs03 where eqp_id = ?";
         type = 'gbs03'
     }
 
@@ -670,9 +807,6 @@ router.put('/return', auth.auth, async function(req, res) {
  *                  description: 예약정보
  */
  router.get('/reservation', function(req, res) {
-
-    console.log(req.query.eqp_id);
-    console.log(req.query.date);
     
     mariadb.createConnection(dbconfig.mariaConf).then(async connection => {
 

@@ -511,7 +511,7 @@ router.get('/usage', async function(req, res) {
         let rows = []
         for(let i = 0; i < keys.length; i++ ) {
             client.GET('elecar_' + keys[i], function(err, reply) {
-                if(reply === null) {
+                if(reply === null || reply === NaN) {
                     rows.push({date : keys[i], amount : 0})
                 } else {
                     rows.push({date : keys[i], amount : parseInt(reply)});
