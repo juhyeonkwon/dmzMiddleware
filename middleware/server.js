@@ -20,6 +20,7 @@ let crane = require('./routes/crane');
 let welding = require('./routes/welding');
 let auth = require('./routes/user');
 let elecar = require('./routes/elecar');
+let board = require('./routes/board');
 
 const { request } = require('express');
 const {swaggerUi, specs } = require('./modules/swagger');
@@ -65,7 +66,7 @@ app.use('/crane', crane);
 app.use('/welding', welding)
 app.use('/auth', auth);
 app.use('/elecar', elecar);
-
+app.use('/board', board);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
